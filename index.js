@@ -28,12 +28,13 @@ app.listen(3000, () => {
 app.post("/signup", (req, res) => {
     console.log(req.body)
     const query="INSERT INTO signup(name,email,pw) VALUES ('"+req.body.name+"','"+req.body.email+"','"+req.body.pw+"')";
+    
     mysqlConnection.query(query,(err, rows) => {
         if (!err) {
           
         } else {
-            console.log("err...",err)
-        }
+
+         }
 
     })
    
@@ -59,7 +60,6 @@ app.get("/signup", (req, res) => {
     })
 })
 app.post("/login", (req,res) => {
-   
     var email=req.body.email
     var pw=req.body.pw
     mysqlConnection.query("SELECT * FROM signup WHERE email = ?",[email], (error, results, fields) => {
@@ -78,7 +78,8 @@ app.post("/login", (req,res) => {
                       res.send({
                           status:true,
                           message:'successfully authenticated',
-                          name:results[0].name
+                          name:results[0].name,
+                          iduser:results[0].iduser
                       })
                   }else{
                       res.json({
@@ -96,50 +97,101 @@ app.post("/login", (req,res) => {
             }
           });
         })
+
 app.post("/boards", (req, res) => {
-            console.log(req.body)
-            const query="INSERT INTO boards (bTitle) VALUES ('"+req.body.bTitle+"')";
+            const query="INSERT INTO boards (bTitle,iduser) VALUES ('"+req.body.bTitle+"',"+req.body.iduser+")";
             mysqlConnection.query(query,(err, rows) => {
                 if (!err) {
-                  
+                    mysqlConnection.query("SELECT bTitle FROM boards JOIN signup ON signup.iduser = boards.iduser  WHERE boards.idboards=?",[rows.insertId],(err, result) => {
+                        if (!err) {
+                            res.send(result)
+                            console.log("response : ",result)
+                       
+                        } else {
+                            console.log("err...",err)
+                        }
+                    })
                 } else {
                     console.log("err...",err)
                 }
-
             })
-           
-            mysqlConnection.query("SELECT * FROM boards where bTitle=?",[req.body.bTitle],(err, rows) => {
-                if (!err) {
-                   
-                  res.send(rows)
-                
-                } else {
-                    console.log("err...",err)
-                }
-
-            })
-
-        })
-app.get("/boards", (req, res) => {
             
+            
+        })
+        
+app.get("/:id/boards", (req, res) => {
+          
+            mysqlConnection.query("SELECT * FROM boards JOIN signup ON signup.iduser = boards.iduser  WHERE boards.iduser=?",[req.params.id] ,(err, rows) => {
+            if (!err) {
+                res.send(rows)
+                console.log("response : ",rows)
            
-            mysqlConnection.query("SELECT * from boards",(err, rows) => {
+            } else {
+                console.log("err...",err)
+            }
+        })
+         
+})
+app.get("/board/:id", (req, res) => {
+          
+    mysqlConnection.query("SELECT * FROM boards JOIN signup ON signup.iduser = boards.iduser  WHERE boards.idboards=?",[req.params.id] ,(err, rows) => {
+    if (!err) {
+        res.send(rows)
+        console.log("response : ",rows)
+   
+    } else {
+        console.log("err...",err)
+    }
+})
+ 
+})
+app.post("/teams", (req, res) => {
+    const query="INSERT INTO teams (tName,tDesc,iduser) VALUES ('"+req.body.tName+"','"+req.body.tDesc+"',"+req.body.iduser+")";
+    mysqlConnection.query(query,(err, rows) => {
+        if (!err) {
+            mysqlConnection.query("SELECT tName,tDesc FROM teams JOIN signup ON signup.iduser = teams.iduser  WHERE teams.idteams=?",[rows.insertId],(err, result) => {
                 if (!err) {
-                    res.send(rows)
+                    res.send(result)
+                    console.log("response : ",result)
                
                 } else {
                     console.log("err...",err)
                 }
             })
+        } else {
+            console.log("err...",err)
+        }
+    })  
 })
-app.get("/boards/:id", (req, res) => {
-            
-    mysqlConnection.query("SELECT * from boards where idboards=?",[req.params.id],(err, rows) => {
+app.get("/:id/teams", (req, res) => {
+          
+    mysqlConnection.query("SELECT * FROM teams JOIN signup ON signup.iduser = teams.iduser  WHERE teams.iduser=?",[req.params.id] ,(err, rows) => {
+    if (!err) {
+        res.send(rows)
+        console.log("response : ",rows)
+   
+    } else {
+        console.log("err...",err)
+    }
+})
+})
+app.post("/teamboards", (req, res) => {
+    const query="INSERT INTO teamboards(idteams,iduser,bTitle) VALUES ("+req.body.idteams+",+"+req.body.iduser+",'"+req.body.bTitle+"')";
+    mysqlConnection.query(query,(err, rows) => {
         if (!err) {
-            res.send(rows)
+            mysqlConnection.query("SELECT bTitle FROM teamboards JOIN signup ON signup.iduser = teamboards.iduser  WHERE teamboards.iTB=?",[rows.insertId],(err, result) => {
+                if (!err) {
+                    res.send(result)
+                    console.log("response : ",result)
+               
+                } else {
+                    console.log("err...",err)
+                }
+            })
         } else {
             console.log("err...",err)
         }
     })
+    
+    
 })
-
