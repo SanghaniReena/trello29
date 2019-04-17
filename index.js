@@ -151,7 +151,6 @@ app.post("/teams", (req, res) => {
     })
 })
 app.get("/:id/teams", (req, res) => {
-
     mysqlConnection.query("SELECT * FROM teams JOIN signup ON signup.iduser = teams.iduser  WHERE teams.iduser=?", [req.params.id], (err, rows) => {
         if (!err) {
             res.send(rows)
@@ -166,7 +165,7 @@ app.post("/teamboards", (req, res) => {
     const query = "INSERT INTO boards (bTitle,iduser,idteams) VALUES ('" + req.body.bTitle + "'," + req.body.iduser + "," + req.body.idteams + ")";
     mysqlConnection.query(query, (err, rows) => {
         if (!err) {
-            mysqlConnection.query("SELECT bTitle FROM boards JOIN teams ON teams.idteams = boards.idteams where boards.idteams=?", [rows.insertId], (err, result) => {
+            mysqlConnection.query("SELECT * FROM boards JOIN teams ON teams.idteams = boards.idteams where boards.idteams=?", [rows.insertId], (err, result) => {
                 if (!err) {
                     res.send(result)
 
@@ -180,7 +179,7 @@ app.post("/teamboards", (req, res) => {
     })
 })
 app.get("/:id/teamboards", (req, res) => {
-    mysqlConnection.query("SELECT bTitle FROM boards JOIN teams ON teams.idteams = boards.idteams  WHERE boards.idteams =?", [req.params.id], (err, rows) => {
+    mysqlConnection.query("SELECT * FROM boards JOIN teams ON teams.idteams = boards.idteams  WHERE boards.idteams =?", [req.params.id], (err, rows) => {
         if (!err) {
             res.send(rows)
 
@@ -213,6 +212,16 @@ app.get("/:id/lists", (req, res) => {
             res.send(rows)
             console.log("list", rows)
 
+        } else {
+            console.log("err...", err)
+        }
+    })
+
+})
+app.get("/:idu/teamboard/:idt", (req, res) => {
+    mysqlConnection.query("SELECT * FROM boards JOIN teams ON teams.idteams = boards.idteams  WHERE boards.iduser =? AND boards.idteams=?", [req.params.idu, req.params.idt], (err, rows) => {
+        if (!err) {
+            res.send(rows)
         } else {
             console.log("err...", err)
         }
