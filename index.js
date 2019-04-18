@@ -9,9 +9,9 @@ app.use(bodypaser.json())
 var mysqlConnection = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "root",
+    password: "",
     database: "trello",
-    port: '3308'
+    port: '3306'
 });
 mysqlConnection.connect((err) => {
     if (!err) {
@@ -193,7 +193,7 @@ app.post("/lists", (req, res) => {
     const query = "INSERT INTO list (lname,iduser,idteams,idboards) VALUES ('" + req.body.lName + "'," + req.body.iduser + "," + req.body.idteams + "," + req.body.idboards + ")";
     mysqlConnection.query(query, (err, rows) => {
         if (!err) {
-            mysqlConnection.query("SELECT lName FROM list   WHERE idlist=?", [rows.insertId], (err, result) => {
+            mysqlConnection.query("SELECT * FROM list WHERE idlist=?", [rows.insertId], (err, result) => {
                 if (!err) {
                     res.send(result)
 
@@ -207,7 +207,7 @@ app.post("/lists", (req, res) => {
     })
 })
 app.get("/:id/lists", (req, res) => {
-    mysqlConnection.query("SELECT * FROM list JOIN boards ON boards.idboards = list.idlist  WHERE list.idboards=? ", [req.params.id], (err, rows) => {
+    mysqlConnection.query("SELECT * FROM list  WHERE idboards=? ", [req.params.id], (err, rows) => {
         if (!err) {
             res.send(rows)
             console.log("list", rows)
@@ -218,10 +218,40 @@ app.get("/:id/lists", (req, res) => {
     })
 
 })
-app.get("/:idu/teamboard/:idt", (req, res) => {
-    mysqlConnection.query("SELECT * FROM boards JOIN teams ON teams.idteams = boards.idteams  WHERE boards.iduser =? AND boards.idteams=?", [req.params.idu, req.params.idt], (err, rows) => {
+app.get("/:idu/teamboard/:idb", (req, res) => {
+    mysqlConnection.query("SELECT * FROM boards  WHERE iduser =? AND idboards=?", [req.params.idu, req.params.idb], (err, rows) => {
         if (!err) {
             res.send(rows)
+        } else {
+            console.log("err...", err)
+        }
+    })
+
+})
+app.post("/cards", (req, res) => {
+    const query = "INSERT INTO cards (cTitle,idlists,idboards,idteams,iduser) VALUES ('" + req.body.cTitle + "'," + req.body.idlists + "," + req.body.idboards + "," + req.body.idteams + "," + req.body.iduser + ")";
+    mysqlConnection.query(query, (err, rows) => {
+        if (!err) {
+            mysqlConnection.query("SELECT cTitle FROM cards JOIN list ON list.idlist = cards.idlists  WHERE cards.idcards=? ", [rows.insertId], (err, result) => {
+                if (!err) {
+                    res.send(result)
+
+                } else {
+                    console.log("err...", err)
+                }
+            })
+        } else {
+            console.log("err...", err)
+        }
+    })
+})
+
+app.get("/:idb/cards", (req, res) => {
+
+    mysqlConnection.query("SELECT * FROM cards JOIN list ON list.idlist = cards.idlists  WHERE cards.idboards=?", [req.params.idb], (err, rows) => {
+        if (!err) {
+            res.send(rows)
+
         } else {
             console.log("err...", err)
         }
