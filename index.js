@@ -215,6 +215,7 @@ app.post("/lists", (req, res) => {
             mysqlConnection.query("SELECT * FROM list WHERE idlist=?", [rows.insertId], (err, result) => {
                 if (!err) {
                     res.send(result)
+                    console.log("list",result)
 
                 } else {
                     console.log("err...", err)
